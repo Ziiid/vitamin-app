@@ -32,3 +32,14 @@ create policy "Users can manage own profile"
 
 create policy "Users can manage own logs"
   on daily_logs for all using (auth.uid() = user_id);
+
+-- Funktion för att radera eget konto (GDPR rätt till radering)
+create or replace function delete_user()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  delete from auth.users where id = auth.uid();
+end;
+$$;

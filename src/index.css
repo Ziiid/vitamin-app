@@ -996,3 +996,163 @@ body {
   color: var(--text-secondary);
   margin-bottom: 12px;
 }
+
+/* ──────────────────────────────────────────
+   GDPR – samtycke & radera
+────────────────────────────────────────── */
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.consent-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.consent-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.policy-link {
+  background: none;
+  border: none;
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.delete-btn {
+  border-color: rgba(255,100,100,0.5) !important;
+  color: rgba(255,160,160,0.9) !important;
+}
+
+.delete-confirm {
+  background: rgba(200,50,50,0.15);
+  border: 1.5px solid rgba(255,100,100,0.3);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.delete-confirm p {
+  font-size: 13px;
+  color: rgba(255,200,200,0.9);
+}
+
+.delete-cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.delete-confirm-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: #DC2626;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-confirm-btn:disabled {
+  opacity: 0.5;
+}
+
+/* ──────────────────────────────────────────
+   PRIVACY POLICY SHEET
+────────────────────────────────────────── */
+.policy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+
+.policy-sheet {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.policy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.policy-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.policy-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.policy-body {
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.policy-updated {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.policy-body h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 8px;
+}
+
+.policy-body p,
+.policy-body li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.policy-body ul {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

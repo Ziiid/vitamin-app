@@ -5,6 +5,7 @@ import type { GeneratedSchedule } from "../types/schedule"
 import { timeLabels, timeIcons } from "../data/vitamins"
 import type { UserProfile } from "./Onboarding"
 import VitaminCard from "./VitaminCard"
+import BodyMap from "./BodyMap"
 import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 
@@ -119,6 +120,11 @@ export default function Schedule({ profile, schedule, onReset }: Props) {
           <span className="progress-label">{done}/{totalDoses} tagna idag</span>
         </div>
       </motion.div>
+
+      <BodyMap
+        schedule={schedule.items}
+        checkedIds={new Set([...checked].map(k => k.split('__')[0]))}
+      />
 
       <div className="time-sections">
         {activeTimes.map((time, i) => (

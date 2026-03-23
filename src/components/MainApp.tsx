@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { UserProfile } from './Onboarding'
+import type { GeneratedSchedule } from '../types/schedule'
 import Schedule from './Schedule'
 import PrivacyPolicy from './PrivacyPolicy'
 import { useAuth } from '../context/AuthContext'
@@ -8,12 +9,13 @@ import { supabase } from '../lib/supabase'
 
 interface Props {
   profile: UserProfile
+  schedule: GeneratedSchedule
   onReset: () => void
 }
 
 type Tab = 'schedule' | 'profile'
 
-export default function MainApp({ profile, onReset }: Props) {
+export default function MainApp({ profile, schedule, onReset }: Props) {
   const [tab, setTab] = useState<Tab>('schedule')
   const [showPolicy, setShowPolicy] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -32,7 +34,7 @@ export default function MainApp({ profile, onReset }: Props) {
     <>
       <div className="main-app">
         <div className="tab-content">
-          {tab === 'schedule' && <Schedule profile={profile} onReset={onReset} />}
+          {tab === 'schedule' && <Schedule profile={profile} schedule={schedule} onReset={onReset} />}
           {tab === 'profile' && (
             <div className="schedule-container">
               <motion.div

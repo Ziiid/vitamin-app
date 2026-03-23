@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Goal } from '../data/vitamins'
 import { goalLabels, goalEmojis } from '../data/vitamins'
+import type { GeneratedSchedule } from '../types/schedule'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 
@@ -14,7 +15,7 @@ export interface UserProfile {
 }
 
 interface Props {
-  onComplete: (profile: UserProfile) => void
+  onComplete: (profile: UserProfile, schedule: GeneratedSchedule) => void
 }
 
 const allGoals: Goal[] = ['immunity', 'energy', 'sleep', 'bones', 'skin', 'training']
@@ -27,7 +28,8 @@ export default function Onboarding({ onComplete }: Props) {
   const [weight, setWeight] = useState('')
   const [height, setHeight] = useState('')
   const [goals, setGoals] = useState<Goal[]>([])
-  const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [error, setError] = useState('')
 
   const toggleGoal = (g: Goal) => {
     setGoals(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
@@ -40,7 +42,8 @@ export default function Onboarding({ onComplete }: Props) {
   ]
 
   const handleSubmit = async () => {
-    setSaving(true)
+    setGenerating(true)
+    setError('')
     const profile: UserProfile = {
       age: Number(age),
       sex: sex as 'male' | 'female',
@@ -48,18 +51,38 @@ export default function Onboarding({ onComplete }: Props) {
       height: Number(height),
       goals,
     }
-    if (user) {
-      await supabase.from('profiles').upsert({
-        user_id: user.id,
-        age: profile.age,
-        sex: profile.sex,
-        weight: profile.weight,
-        height: profile.height,
-        goals: profile.goals,
+
+    try {
+      const res = await fetch('/api/generate-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
       })
+      if (!res.ok) throw new Error('API-fel')
+      const schedule: GeneratedSchedule = await res.json()
+
+      if (user) {
+        await Promise.all([
+          supabase.from('profiles').upsert({
+            user_id: user.id,
+            age: profile.age,
+            sex: profile.sex,
+            weight: profile.weight,
+            height: profile.height,
+            goals: profile.goals,
+          }),
+          supabase.from('schedules').upsert({
+            user_id: user.id,
+            schedule,
+          }),
+        ])
+      }
+
+      onComplete(profile, schedule)
+    } catch {
+      setError('Något gick fel. Försök igen.')
+      setGenerating(false)
     }
-    setSaving(false)
-    onComplete(profile)
   }
 
   const bmi = weight && height && Number(weight) > 0 && Number(height) > 0
@@ -69,6 +92,29 @@ export default function Onboarding({ onComplete }: Props) {
   const bmiCategory = bmi
     ? bmi < 18.5 ? 'Undervikt' : bmi < 25 ? 'Normalvikt' : bmi < 30 ? 'Övervikt' : 'Fetma'
     : ''
+
+  if (generating) {
+    return (
+      <div className="onboarding-container">
+        <motion.div
+          className="onboarding-card"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{ textAlign: 'center', padding: '48px 36px' }}
+        >
+          <div className="onboarding-logo" style={{ justifyContent: 'center' }}>
+            <span>🌿</span>
+            <h1>Vitalize</h1>
+          </div>
+          <div className="generating-spinner">🔬</div>
+          <h2 className="step-title" style={{ marginBottom: 8 }}>Analyserar din profil</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+            Skapar ett personligt schema baserat på din ålder, vikt, längd och mål...
+          </p>
+        </motion.div>
+      </div>
+    )
+  }
 
   const steps = [
     {
@@ -148,19 +194,19 @@ export default function Onboarding({ onComplete }: Props) {
       title: 'Vad vill du fokusera på?',
       content: (
         <div>
-        <p className="goals-hint">Välj ett eller flera områden</p>
-        <div className="goals-grid">
-          {allGoals.map(g => (
-            <button
-              key={g}
-              onClick={() => toggleGoal(g)}
-              className={`goal-btn ${goals.includes(g) ? 'selected' : ''}`}
-            >
-              <span className="goal-emoji">{goalEmojis[g]}</span>
-              <span>{goalLabels[g]}</span>
-            </button>
-          ))}
-        </div>
+          <p className="goals-hint">Välj ett eller flera områden</p>
+          <div className="goals-grid">
+            {allGoals.map(g => (
+              <button
+                key={g}
+                onClick={() => toggleGoal(g)}
+                className={`goal-btn ${goals.includes(g) ? 'selected' : ''}`}
+              >
+                <span className="goal-emoji">{goalEmojis[g]}</span>
+                <span>{goalLabels[g]}</span>
+              </button>
+            ))}
+          </div>
         </div>
       ),
     },
@@ -195,6 +241,8 @@ export default function Onboarding({ onComplete }: Props) {
           {steps[step].content}
         </motion.div>
 
+        {error && <p className="auth-error" style={{ marginTop: 12 }}>{error}</p>}
+
         <div className="onboarding-nav">
           {step > 0 && (
             <button className="back-btn" onClick={() => setStep(s => s - 1)}>
@@ -212,10 +260,10 @@ export default function Onboarding({ onComplete }: Props) {
           ) : (
             <button
               className="next-btn"
-              disabled={!canContinue[step] || saving}
+              disabled={!canContinue[step]}
               onClick={handleSubmit}
             >
-              {saving ? 'Sparar...' : 'Visa mitt schema'}
+              Skapa mitt schema
             </button>
           )}
         </div>

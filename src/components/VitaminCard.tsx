@@ -1,25 +1,20 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { Vitamin } from "../data/vitamins";
-import { vitamins } from "../data/vitamins";
-import type { UserProfile } from "./Onboarding";
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import type { ScheduleItem } from "../types/schedule"
+import type { UserProfile } from "./Onboarding"
 
 interface Props {
-  vitamin: Vitamin;
-  profile: UserProfile;
-  checked?: boolean;
-  onToggle?: () => void;
+  vitamin: ScheduleItem
+  profile: UserProfile
+  checked?: boolean
+  onToggle?: () => void
 }
 
-export default function VitaminCard({ vitamin, profile, checked = false, onToggle }: Props) {
-  const [expanded, setExpanded] = useState(false);
+export default function VitaminCard({ vitamin, checked = false, onToggle }: Props) {
+  const [expanded, setExpanded] = useState(false)
 
-  const conflictNames = vitamin.conflicts.map(
-    (id) => vitamins.find((v) => v.id === id)?.name ?? id
-  );
-  const synergyNames = vitamin.synergies.map(
-    (id) => vitamins.find((v) => v.id === id)?.name ?? id
-  );
+  const conflictNames = vitamin.conflicts
+  const synergyNames = vitamin.synergies
 
   return (
     <motion.div
@@ -40,15 +35,12 @@ export default function VitaminCard({ vitamin, profile, checked = false, onToggl
             {checked && <span className="card-checkmark">✓</span>}
           </button>
         )}
-        <button
-          className="card-header-inner"
-          onClick={() => setExpanded((e) => !e)}
-        >
+        <button className="card-header-inner" onClick={() => setExpanded((e) => !e)}>
           <div className="card-left">
             <span className="card-emoji">{vitamin.emoji}</span>
             <div>
               <p className="card-name">{vitamin.name}</p>
-              <p className="card-dose">{vitamin.dose(profile.age, profile.sex)}</p>
+              <p className="card-dose">{vitamin.dose}</p>
             </div>
           </div>
           <div className="card-right">
@@ -98,5 +90,5 @@ export default function VitaminCard({ vitamin, profile, checked = false, onToggl
         )}
       </AnimatePresence>
     </motion.div>
-  );
+  )
 }

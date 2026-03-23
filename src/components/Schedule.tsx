@@ -1,49 +1,45 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import type { TimeOfDay } from "../data/vitamins";
-import { vitamins, timeLabels, timeIcons } from "../data/vitamins";
-import type { UserProfile } from "./Onboarding";
-import VitaminCard from "./VitaminCard";
-import { supabase } from "../lib/supabase";
-import { useAuth } from "../context/AuthContext";
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import type { TimeOfDay } from "../types/schedule"
+import type { GeneratedSchedule } from "../types/schedule"
+import { timeLabels, timeIcons } from "../data/vitamins"
+import type { UserProfile } from "./Onboarding"
+import VitaminCard from "./VitaminCard"
+import { supabase } from "../lib/supabase"
+import { useAuth } from "../context/AuthContext"
 
 interface Props {
-  profile: UserProfile;
-  onReset: () => void;
+  profile: UserProfile
+  schedule: GeneratedSchedule
+  onReset: () => void
 }
 
-const timeOrder: TimeOfDay[] = ["morning", "midday", "evening"];
-const today = () => new Date().toISOString().split("T")[0];
-const logKey = (vitaminId: string, time: TimeOfDay) => `${vitaminId}__${time}`;
+const timeOrder: TimeOfDay[] = ["morning", "midday", "evening"]
+const today = () => new Date().toISOString().split("T")[0]
+const logKey = (vitaminId: string, time: TimeOfDay) => `${vitaminId}__${time}`
 
-export default function Schedule({ profile, onReset }: Props) {
-  const { user } = useAuth();
-  const [checked, setChecked] = useState<Set<string>>(new Set());
+export default function Schedule({ profile, schedule, onReset }: Props) {
+  const { user } = useAuth()
+  const [checked, setChecked] = useState<Set<string>>(new Set())
 
-  const relevant = vitamins.filter((v) =>
-    v.goals.some((g) => profile.goals.includes(g))
-  );
-
-  const byTime: Record<TimeOfDay, typeof vitamins> = {
+  const byTime: Record<TimeOfDay, typeof schedule.items> = {
     morning: [],
     midday: [],
     evening: [],
-  };
+  }
 
-  relevant.forEach((v) => {
+  schedule.items.forEach((v) => {
     v.times.forEach((t) => {
       if (!byTime[t].find((x) => x.id === v.id)) {
-        byTime[t].push(v);
+        byTime[t].push(v)
       }
-    });
-  });
+    })
+  })
 
-  const activeTimes = timeOrder.filter((t) => byTime[t].length > 0);
-
-  // Total doses = sum of all (vitamin × time) combinations
-  const totalDoses = relevant.reduce((sum, v) => sum + v.times.length, 0);
-  const done = checked.size;
-  const pct = totalDoses > 0 ? Math.round((done / totalDoses) * 100) : 0;
+  const activeTimes = timeOrder.filter((t) => byTime[t].length > 0)
+  const totalDoses = schedule.items.reduce((sum, v) => sum + v.times.length, 0)
+  const done = checked.size
+  const pct = totalDoses > 0 ? Math.round((done / totalDoses) * 100) : 0
 
   useEffect(() => {
     const load = async () => {
@@ -52,45 +48,45 @@ export default function Schedule({ profile, onReset }: Props) {
           .from("daily_logs")
           .select("vitamin_id, time_of_day")
           .eq("user_id", user.id)
-          .eq("date", today());
+          .eq("date", today())
         if (data) setChecked(new Set(data.map((r: { vitamin_id: string; time_of_day: string }) =>
           logKey(r.vitamin_id, r.time_of_day as TimeOfDay)
-        )));
+        )))
       } else {
-        const stored = localStorage.getItem(`log_${today()}`);
-        if (stored) setChecked(new Set(JSON.parse(stored)));
+        const stored = localStorage.getItem(`log_${today()}`)
+        if (stored) setChecked(new Set(JSON.parse(stored)))
       }
-    };
-    load();
-  }, [user]);
+    }
+    load()
+  }, [user])
 
   const toggle = async (vitaminId: string, time: TimeOfDay) => {
-    const key = logKey(vitaminId, time);
-    const next = new Set(checked);
+    const key = logKey(vitaminId, time)
+    const next = new Set(checked)
     if (next.has(key)) {
-      next.delete(key);
+      next.delete(key)
       if (user) {
         await supabase.from("daily_logs")
           .delete()
           .eq("user_id", user.id)
           .eq("date", today())
           .eq("vitamin_id", vitaminId)
-          .eq("time_of_day", time);
+          .eq("time_of_day", time)
       }
     } else {
-      next.add(key);
+      next.add(key)
       if (user) {
         await supabase.from("daily_logs").insert({
           user_id: user.id,
           date: today(),
           vitamin_id: vitaminId,
           time_of_day: time,
-        });
+        })
       }
     }
-    setChecked(next);
-    if (!user) localStorage.setItem(`log_${today()}`, JSON.stringify([...next]));
-  };
+    setChecked(next)
+    if (!user) localStorage.setItem(`log_${today()}`, JSON.stringify([...next]))
+  }
 
   return (
     <div className="schedule-container">
@@ -109,7 +105,7 @@ export default function Schedule({ profile, onReset }: Props) {
           </button>
         </div>
         <h2 className="schedule-title">Ditt dagliga schema</h2>
-        <p className="schedule-subtitle">Baserat på dina mål – {profile.age} år</p>
+        <p className="schedule-subtitle">{schedule.summary}</p>
 
         <div className="progress-bar-wrap">
           <div className="progress-bar-track">
@@ -159,5 +155,5 @@ export default function Schedule({ profile, onReset }: Props) {
         </p>
       </div>
     </div>
-  );
+  )
 }

@@ -43,3 +43,16 @@ begin
   delete from auth.users where id = auth.uid();
 end;
 $$;
+
+-- Genererade scheman (sparas en gång per användare)
+create table if not exists schedules (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null unique,
+  schedule jsonb not null,
+  generated_at timestamptz default now()
+);
+
+alter table schedules enable row level security;
+
+create policy "Users can manage own schedule"
+  on schedules for all using (auth.uid() = user_id);

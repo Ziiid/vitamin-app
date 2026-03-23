@@ -1,4 +1,4 @@
-export type TimeOfDay = "morning" | "midday" | "evening" | "night";
+export type TimeOfDay = "morning" | "midday" | "evening";
 export type Goal = "immunity" | "energy" | "sleep" | "bones" | "skin" | "training";
 
 export interface Vitamin {
@@ -48,7 +48,7 @@ export const vitamins: Vitamin[] = [
   {
     id: "magnesium",
     name: "Magnesium (Glycinat)",
-    times: ["evening", "night"],
+    times: ["evening"],
     withFood: false,
     dose: (_age, sex) => sex === "female" ? "310–320 mg" : "400–420 mg",
     why: "Involverat i 300+ enzymatiska processer. Förbättrar sömnkvalitet och minskar stress.",
@@ -62,10 +62,10 @@ export const vitamins: Vitamin[] = [
   {
     id: "omega3",
     name: "Omega-3 (EPA/DHA)",
-    times: ["morning", "midday"],
+    times: ["morning", "evening"],
     withFood: true,
-    dose: () => "1000–2000 mg EPA+DHA",
-    why: "Anti-inflammatorisk, stödjer hjärna, hjärta och leder.",
+    dose: () => "500–1000 mg EPA+DHA",
+    why: "Anti-inflammatorisk, stödjer hjärna, hjärta och leder. Dela dosen för bättre absorption.",
     tip: "Ta med en fettrik måltid för bästa absorption. Frys tabletterna för att minska fisksmak.",
     conflicts: [],
     synergies: ["d3"],
@@ -78,7 +78,7 @@ export const vitamins: Vitamin[] = [
     name: "Vitamin C",
     times: ["morning", "midday"],
     withFood: false,
-    dose: (age) => age > 60 ? "500–1000 mg" : "250–500 mg",
+    dose: (age) => age > 60 ? "250–500 mg x2" : "250 mg x2",
     why: "Kraftfull antioxidant. Stödjer immunförsvar och kollagenproduktion.",
     tip: "Dela upp dosen under dagen – kroppen tar upp max ~500 mg åt gången.",
     conflicts: [],
@@ -133,16 +133,14 @@ export const vitamins: Vitamin[] = [
 
 export const timeLabels: Record<TimeOfDay, string> = {
   morning: "Morgon",
-  midday: "Middag",
+  midday: "Lunch",
   evening: "Kväll",
-  night: "Natt",
 };
 
 export const timeIcons: Record<TimeOfDay, string> = {
   morning: "🌅",
   midday: "☀️",
   evening: "🌆",
-  night: "🌙",
 };
 
 export const goalLabels: Record<Goal, string> = {

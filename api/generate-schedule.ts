@@ -1,14 +1,14 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { age, sex, weight, height, goals } = await req.json()
-
+  const { age, sex, weight, height, goals } = req.body
   const bmi = (weight / Math.pow(height / 100, 2)).toFixed(1)
 
   const prompt = `Du är en kunnig nutritionist. Baserat på följande personprofil ska du ge personliga kosttillskottsrekommendationer.
@@ -57,14 +57,8 @@ Regler:
   })
 
   const text = message.content[0].type === 'text' ? message.content[0].text : ''
-
-  // Strip markdown code blocks if present
   const json = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
   const schedule = JSON.parse(json)
 
-  return new Response(JSON.stringify(schedule), {
-    headers: { 'Content-Type': 'application/json' },
-  })
+  return res.status(200).json(schedule)
 }
-
-export const config = { runtime: 'edge' }

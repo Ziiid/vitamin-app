@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import type { TimeOfDay } from "../data/vitamins";
 import { vitamins, timeLabels, timeIcons } from "../data/vitamins";
 import type { UserProfile } from "./Onboarding";
 import VitaminCard from "./VitaminCard";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
 
 interface Props {
   profile: UserProfile;
@@ -10,8 +13,12 @@ interface Props {
 }
 
 const timeOrder: TimeOfDay[] = ["morning", "midday", "evening", "night"];
+const today = () => new Date().toISOString().split("T")[0];
 
 export default function Schedule({ profile, onReset }: Props) {
+  const { user } = useAuth();
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
   const relevant = vitamins.filter((v) =>
     v.goals.some((g) => profile.goals.includes(g))
   );
@@ -32,6 +39,51 @@ export default function Schedule({ profile, onReset }: Props) {
   });
 
   const activeTimes = timeOrder.filter((t) => byTime[t].length > 0);
+  const total = relevant.length;
+  const done = checked.size;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  useEffect(() => {
+    const load = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from("daily_logs")
+          .select("vitamin_id")
+          .eq("user_id", user.id)
+          .eq("date", today());
+        if (data) setChecked(new Set(data.map((r: { vitamin_id: string }) => r.vitamin_id)));
+      } else {
+        const stored = localStorage.getItem(`log_${today()}`);
+        if (stored) setChecked(new Set(JSON.parse(stored)));
+      }
+    };
+    load();
+  }, [user]);
+
+  const toggle = async (id: string) => {
+    const next = new Set(checked);
+    if (next.has(id)) {
+      next.delete(id);
+      if (user) {
+        await supabase.from("daily_logs")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("date", today())
+          .eq("vitamin_id", id);
+      }
+    } else {
+      next.add(id);
+      if (user) {
+        await supabase.from("daily_logs").insert({
+          user_id: user.id,
+          date: today(),
+          vitamin_id: id,
+        });
+      }
+    }
+    setChecked(next);
+    if (!user) localStorage.setItem(`log_${today()}`, JSON.stringify([...next]));
+  };
 
   return (
     <div className="schedule-container">
@@ -50,9 +102,19 @@ export default function Schedule({ profile, onReset }: Props) {
           </button>
         </div>
         <h2 className="schedule-title">Ditt dagliga schema</h2>
-        <p className="schedule-subtitle">
-          Baserat på dina mål – {profile.age} år
-        </p>
+        <p className="schedule-subtitle">Baserat på dina mål – {profile.age} år</p>
+
+        <div className="progress-bar-wrap">
+          <div className="progress-bar-track">
+            <motion.div
+              className="progress-bar-fill"
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.4 }}
+            />
+          </div>
+          <span className="progress-label">{done}/{total} tagna idag</span>
+        </div>
       </motion.div>
 
       <div className="time-sections">
@@ -71,7 +133,13 @@ export default function Schedule({ profile, onReset }: Props) {
             </div>
             <div className="card-list">
               {byTime[time].map((v) => (
-                <VitaminCard key={v.id} vitamin={v} profile={profile} />
+                <VitaminCard
+                  key={v.id}
+                  vitamin={v}
+                  profile={profile}
+                  checked={checked.has(v.id)}
+                  onToggle={() => toggle(v.id)}
+                />
               ))}
             </div>
           </motion.section>

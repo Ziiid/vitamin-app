@@ -7,9 +7,11 @@ import type { UserProfile } from "./Onboarding";
 interface Props {
   vitamin: Vitamin;
   profile: UserProfile;
+  checked?: boolean;
+  onToggle?: () => void;
 }
 
-export default function VitaminCard({ vitamin, profile }: Props) {
+export default function VitaminCard({ vitamin, profile, checked = false, onToggle }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   const conflictNames = vitamin.conflicts.map(
@@ -21,28 +23,42 @@ export default function VitaminCard({ vitamin, profile }: Props) {
 
   return (
     <motion.div
-      className="vitamin-card"
-      style={{ backgroundColor: vitamin.color }}
+      className={`vitamin-card ${checked ? "card-checked" : ""}`}
+      style={{ backgroundColor: checked ? undefined : vitamin.color }}
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
     >
-      <button className="card-header" onClick={() => setExpanded((e) => !e)}>
-        <div className="card-left">
-          <span className="card-emoji">{vitamin.emoji}</span>
-          <div>
-            <p className="card-name">{vitamin.name}</p>
-            <p className="card-dose">{vitamin.dose(profile.age, profile.sex)}</p>
+      <div className="card-header">
+        {onToggle && (
+          <button
+            className={`card-checkbox ${checked ? "checked" : ""}`}
+            onClick={onToggle}
+            aria-label="Markera som tagen"
+          >
+            {checked && <span className="card-checkmark">✓</span>}
+          </button>
+        )}
+        <button
+          className="card-header-inner"
+          onClick={() => setExpanded((e) => !e)}
+        >
+          <div className="card-left">
+            <span className="card-emoji">{vitamin.emoji}</span>
+            <div>
+              <p className="card-name">{vitamin.name}</p>
+              <p className="card-dose">{vitamin.dose(profile.age, profile.sex)}</p>
+            </div>
           </div>
-        </div>
-        <div className="card-right">
-          <span className={`food-badge ${vitamin.withFood ? "with-food" : "without-food"}`}>
-            {vitamin.withFood ? "Med mat" : "Utan mat"}
-          </span>
-          <span className="expand-icon">{expanded ? "▲" : "▼"}</span>
-        </div>
-      </button>
+          <div className="card-right">
+            <span className={`food-badge ${vitamin.withFood ? "with-food" : "without-food"}`}>
+              {vitamin.withFood ? "Med mat" : "Utan mat"}
+            </span>
+            <span className="expand-icon">{expanded ? "▲" : "▼"}</span>
+          </div>
+        </button>
+      </div>
 
       <AnimatePresence>
         {expanded && (

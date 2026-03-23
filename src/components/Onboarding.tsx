@@ -147,6 +147,8 @@ export default function Onboarding({ onComplete }: Props) {
     {
       title: 'Vad vill du fokusera på?',
       content: (
+        <div>
+        <p className="goals-hint">Välj ett eller flera områden</p>
         <div className="goals-grid">
           {allGoals.map(g => (
             <button
@@ -158,6 +160,7 @@ export default function Onboarding({ onComplete }: Props) {
               <span>{goalLabels[g]}</span>
             </button>
           ))}
+        </div>
         </div>
       ),
     },

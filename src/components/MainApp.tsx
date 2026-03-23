@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { UserProfile } from './Onboarding'
 import Schedule from './Schedule'
-import DailyLog from './DailyLog'
 import PrivacyPolicy from './PrivacyPolicy'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
@@ -12,19 +11,18 @@ interface Props {
   onReset: () => void
 }
 
-type Tab = 'schedule' | 'log' | 'profile'
+type Tab = 'schedule' | 'profile'
 
 export default function MainApp({ profile, onReset }: Props) {
-  const [tab, setTab] = useState<Tab>('log')
+  const [tab, setTab] = useState<Tab>('schedule')
   const [showPolicy, setShowPolicy] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const { user, signOut } = useAuth()
 
   const deleteAccount = async () => {
     if (!user) return
     setDeleting(true)
-    // Delete user data — Supabase cascade handles profiles & daily_logs
     await supabase.rpc('delete_user')
     await signOut()
     setDeleting(false)
@@ -35,7 +33,6 @@ export default function MainApp({ profile, onReset }: Props) {
       <div className="main-app">
         <div className="tab-content">
           {tab === 'schedule' && <Schedule profile={profile} onReset={onReset} />}
-          {tab === 'log' && <DailyLog profile={profile} />}
           {tab === 'profile' && (
             <div className="schedule-container">
               <motion.div
@@ -93,10 +90,7 @@ export default function MainApp({ profile, onReset }: Props) {
                   </button>
                 )}
                 {user && !confirmDelete && (
-                  <button
-                    className="reset-btn profile-btn delete-btn"
-                    onClick={() => setConfirmDelete(true)}
-                  >
+                  <button className="reset-btn profile-btn delete-btn" onClick={() => setConfirmDelete(true)}>
                     Radera mitt konto
                   </button>
                 )}
@@ -104,9 +98,7 @@ export default function MainApp({ profile, onReset }: Props) {
                   <div className="delete-confirm">
                     <p>Är du säker? All din data raderas permanent.</p>
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      <button className="delete-cancel-btn" onClick={() => setConfirmDelete(false)}>
-                        Avbryt
-                      </button>
+                      <button className="delete-cancel-btn" onClick={() => setConfirmDelete(false)}>Avbryt</button>
                       <button className="delete-confirm-btn" onClick={deleteAccount} disabled={deleting}>
                         {deleting ? 'Raderar...' : 'Ja, radera allt'}
                       </button>
@@ -120,7 +112,6 @@ export default function MainApp({ profile, onReset }: Props) {
 
         <nav className="bottom-nav">
           {([
-            { id: 'log', label: 'Idag', icon: '✅' },
             { id: 'schedule', label: 'Schema', icon: '📋' },
             { id: 'profile', label: 'Profil', icon: '👤' },
           ] as { id: Tab; label: string; icon: string }[]).map(item => (

@@ -86,6 +86,16 @@ export default function VitaminCard({ vitamin, checked = false, onToggle }: Prop
                 </div>
               </div>
             )}
+            {vitamin.foodSources && vitamin.foodSources.length > 0 && (
+              <div className="detail-food">
+                <span>🥗 Får du naturligt från:</span>
+                <ul className="food-list">
+                  {vitamin.foodSources.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

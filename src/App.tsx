@@ -29,7 +29,7 @@ function Inner() {
           goals: profileData.goals,
         })
       }
-      if (scheduleData) setSchedule(scheduleData.schedule)
+      if (scheduleData?.schedule?.dailyGoals) setSchedule(scheduleData.schedule)
       setAppLoading(false)
     })
   }, [user])

@@ -5,6 +5,7 @@ import { goalLabels, goalEmojis } from '../data/vitamins'
 import type { GeneratedSchedule } from '../types/schedule'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { mockProfile, mockSchedule } from '../data/mockSchedule'
 
 export interface UserProfile {
   age: number
@@ -224,6 +225,19 @@ export default function Onboarding({ onComplete }: Props) {
           <span>🌿</span>
           <h1>Vitalize</h1>
         </div>
+
+        {import.meta.env.DEV && (
+          <button
+            onClick={() => onComplete(mockProfile, mockSchedule)}
+            style={{
+              width: '100%', marginBottom: 16, padding: '10px',
+              background: '#1e293b', color: '#94a3b8', border: '1px dashed #334155',
+              borderRadius: 10, fontSize: 12, cursor: 'pointer',
+            }}
+          >
+            🛠️ Dev: Ladda testprofil (skippar Claude)
+          </button>
+        )}
 
         <div className="step-dots">
           {steps.map((_, i) => (

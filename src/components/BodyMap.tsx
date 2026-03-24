@@ -35,8 +35,8 @@ export default function BodyMap({
   const waterPct = Math.min(waterGlasses / waterGoalGlasses, 1)
   const proteinPct = Math.min(proteinG / dailyGoals.protein.grams, 1)
 
-  const totalDoses = schedule.reduce((s, v) => s + v.times.length, 0)
-  const vitaminPct = totalDoses > 0 ? Math.min(checkedIds.size / totalDoses, 1) : 0
+  const vitaminPct = schedule.length > 0 ? Math.min(checkedIds.size / schedule.length, 1) : 0
+
 
   // Vitamin region highlighting
   const checkedItems = schedule.filter(v => checkedIds.has(v.id))
